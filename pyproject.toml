@@ -1,0 +1,33 @@
+# Dev tooling only. The device code in circuitpy/ runs on CircuitPython, not CPython.
+[project]
+name = "macropad-music-box"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["circuitpy/lib"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["backup"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "TID"]
+
+# CircuitPython doesn't ship these, so code using them passes tests on a Mac
+# and then crashes on the Macropad.
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"abc".msg = "Not available in CircuitPython"
+"bisect".msg = "Not available in CircuitPython"
+"dataclasses".msg = "Not available in CircuitPython"
+"enum".msg = "Not available in CircuitPython"
+"functools".msg = "Not available in CircuitPython"
+"heapq".msg = "Not available in CircuitPython"
+"itertools".msg = "Not available in CircuitPython"
+"typing".msg = "Not available in CircuitPython"
+"random.Random".msg = "CircuitPython's random has module functions only"
+
+[tool.ruff.lint.isort]
+known-first-party = ["music_box"]

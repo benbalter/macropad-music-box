@@ -1,0 +1,7 @@
+backup/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.venv/
+*.uf2
+uv.lock
