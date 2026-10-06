@@ -4,7 +4,7 @@ A CircuitPython music toy for the [Adafruit Macropad RP2040](https://learn.adafr
 
 ## Layout
 
-- [`circuitpy/`](circuitpy/) mirrors the `CIRCUITPY` drive one-to-one: [`code.py`](circuitpy/code.py) is the entry point, [`settings.toml`](circuitpy/settings.toml) holds parent settings, and the package is [`lib/music_box/`](circuitpy/lib/music_box/) (`lib/` is on the board's import path).
+- [`circuitpy/`](circuitpy/) mirrors the `CIRCUITPY` drive one-to-one: [`boot.py`](circuitpy/boot.py) hides the drive at power-up (hold the top-left key to show it), [`code.py`](circuitpy/code.py) is the entry point, [`settings.toml`](circuitpy/settings.toml) holds parent settings, and the package is [`lib/music_box/`](circuitpy/lib/music_box/) (`lib/` is on the board's import path).
 - Modes in [`modes/`](circuitpy/lib/music_box/modes/) never touch hardware. They call the `io` interface documented in [`modes/base.py`](circuitpy/lib/music_box/modes/base.py), implemented by [`hardware.py`](circuitpy/lib/music_box/hardware.py) on the board and `FakeIO` in [`tests/conftest.py`](tests/conftest.py).
 - Timing is done in milliseconds with [`timeline.py`](circuitpy/lib/music_box/timeline.py), never `time.sleep`, so input stays responsive.
 - [`instruments.py`](circuitpy/lib/music_box/instruments.py), [`screen.py`](circuitpy/lib/music_box/screen.py), and `hardware.py` import CircuitPython-only modules (`synthio`, `displayio`, `board`), so they can't be imported in tests.
@@ -12,7 +12,7 @@ A CircuitPython music toy for the [Adafruit Macropad RP2040](https://learn.adafr
 ## Commands
 
 - `uvx pytest`, `uvx ruff check .`, `uvx ruff format .`: run all three before committing; CI runs the same.
-- [`scripts/deploy.sh`](scripts/deploy.sh): installs `neopixel` with circup, remounts the drive with `noasync` (sudo), and copies only changed files, checking each one after writing. The board restarts on every file write. Don't bulk-`rsync` or `cp` to the drive yourself: macOS's FAT driver ([circuitpython#8449](https://github.com/adafruit/circuitpython/issues/8449)) failed those writes with `Bad address` and corrupted CIRCUITPY during development. To recover, run `storage.erase_filesystem()` from the REPL, which wipes the drive, so ask first.
+- `uv run scripts/deploy.py` ([source](scripts/deploy.py)): sends changed files over USB serial using mpremote's `SerialTransport` and checks each with SHA-256. It needs [`boot.py`](circuitpy/boot.py) on the board, which hides the CIRCUITPY drive so the board can write its own files. Never write to the drive through macOS (`cp`, `rsync`, Finder): its FAT driver ([circuitpython#8449](https://github.com/adafruit/circuitpython/issues/8449)) failed those writes with `Bad address` and corrupted CIRCUITPY during development. mpremote's `fs ls`/`cp -r` need `os.ilistdir`, which CircuitPython lacks, so walk directories with `os.listdir`. Recovery is `storage.erase_filesystem()` from the REPL; it wipes the drive, so ask first.
 - To see on-device errors without an interactive terminal, open the first `/dev/cu.usbmodem*` with pyserial (`uv run --with pyserial python`), send `\x03` then `\x04` to soft-reload, and read the output. [`scripts/console.sh`](scripts/console.sh) is the interactive version.
 
 ## Gotchas

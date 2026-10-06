@@ -25,17 +25,24 @@ After 10 minutes with no button presses, the lights, screen, and sound turn off.
 You need a Macropad RP2040 and a USB-C data cable. The Macropad has no battery, so use a USB power bank to take it off your desk.
 
 1. **Install CircuitPython 10.x.** Download the UF2 from [circuitpython.org/board/adafruit_macropad_rp2040](https://circuitpython.org/board/adafruit_macropad_rp2040/). Hold the dial down while pressing the reset button (left side) to get an `RPI-RP2` drive, then copy the UF2 onto it. The board restarts as a `CIRCUITPY` drive.
-2. **Copy the toy over.** With [uv](https://docs.astral.sh/uv/) installed, run:
+2. **Install `boot.py` (once).** Copy [`circuitpy/boot.py`](circuitpy/boot.py) to the `CIRCUITPY` drive, then unplug the Macropad and plug it back in. From then on the drive stays hidden and the board writes its own files (see below for why).
+3. **Copy the toy over.** With [uv](https://docs.astral.sh/uv/) installed, run:
 
    ```sh
-   scripts/deploy.sh
+   uv run scripts/deploy.py
    ```
 
-   This installs the `neopixel` library with [circup](https://github.com/adafruit/circup) and copies [`circuitpy/`](circuitpy/) onto the drive. Without uv, copy everything in `circuitpy/` to `CIRCUITPY` yourself and put [`neopixel.mpy` and `adafruit_pixelbuf.mpy`](https://circuitpython.org/libraries) in `CIRCUITPY/lib`.
+   This sends [`circuitpy/`](circuitpy/) to the board over USB serial, with the `neopixel` library from the Adafruit bundle (fetched with [circup](https://github.com/adafruit/circup)). It only sends files that changed and checks each one after writing, then restarts the board.
+
+### Why the drive is hidden
+
+macOS's FAT driver delays writes to small drives like CIRCUITPY, which makes writes fail and can corrupt the drive ([circuitpython#8449](https://github.com/adafruit/circuitpython/issues/8449)). That happened while building this. So by default [`boot.py`](circuitpy/boot.py) hides the drive and lets the board write its own files, and `deploy.py` sends files over serial using [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html)'s transport. Bonus: unplugging mid-play can't corrupt anything.
+
+**To see the drive,** hold the top-left key while plugging the Macropad in. Hide it again by replugging without the key.
 
 ### Parent settings
 
-Edit [`settings.toml`](circuitpy/settings.toml) on the `CIRCUITPY` drive. The board picks up changes on its own.
+Edit [`circuitpy/settings.toml`](circuitpy/settings.toml) and run `uv run scripts/deploy.py`, or show the drive (above) and edit `settings.toml` on it.
 
 - `VOLUME`: 0–100, default 100 (the speaker is tiny)
 - `BRIGHTNESS`: key lights, 0–100, default 30
@@ -43,21 +50,18 @@ Edit [`settings.toml`](circuitpy/settings.toml) on the `CIRCUITPY` drive. The bo
 
 ### Fixing a corrupted CIRCUITPY drive
 
-macOS's FAT driver can delay writes to small drives and corrupt CIRCUITPY ([circuitpython#8449](https://github.com/adafruit/circuitpython/issues/8449)). `scripts/deploy.sh` remounts the drive with synchronous writes and checks every file it writes, which avoids most of this. If the drive still stops mounting, or files come back empty:
-
-1. Open the serial console (`scripts/console.sh`), press Ctrl-C, then enter `import storage; storage.erase_filesystem()`. This wipes and reformats CIRCUITPY, and the board restarts.
-2. Run `scripts/deploy.sh` again.
+If the drive won't mount or files come back empty, open the serial console (`scripts/console.sh`), press Ctrl-C, and enter `import storage; storage.erase_filesystem()`. That wipes and reformats CIRCUITPY and restarts the board. Then repeat steps 2 and 3.
 
 ## Development
 
 The layout of [`circuitpy/`](circuitpy/) matches the `CIRCUITPY` drive exactly. The game logic doesn't touch the hardware: modes ask an `io` object to play notes and light keys. On the board that object is [`hardware.py`](circuitpy/lib/music_box/hardware.py); in tests it's a fake that records what was asked for, so the games can be tested on a laptop.
 
 ```sh
-uvx pytest            # tests
-uvx ruff check .      # lint
-uvx ruff format .     # format
-scripts/deploy.sh     # copy to the board
-scripts/console.sh    # serial console: prints, tracebacks, REPL
+uvx pytest                # tests
+uvx ruff check .          # lint
+uvx ruff format .         # format
+uv run scripts/deploy.py  # copy to the board
+scripts/console.sh        # serial console: prints, tracebacks, REPL
 ```
 
 CircuitPython is a subset of Python. Modules like `dataclasses`, `enum`, `typing`, and `functools` don't exist on the board, so the lint config bans them.
