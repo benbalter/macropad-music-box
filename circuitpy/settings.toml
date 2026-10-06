@@ -1,7 +1,7 @@
 # Parent settings, read by code.py at startup. Whole numbers only.
 
-# Speaker volume, 0-100. The speaker is small, but little ears are close.
-VOLUME = 40
+# Speaker volume, 0-100. The speaker is tiny, so even 100 isn't loud.
+VOLUME = 100
 
 # Key light brightness, 0-100.
 BRIGHTNESS = 30

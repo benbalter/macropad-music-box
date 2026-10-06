@@ -84,7 +84,7 @@ class Echo(Mode):
 
         if key != self.pattern[self.position]:
             self.listening = False
-            self.io.note_on("fx", midi_to_hz(48), "boop")
+            self.io.note_on("fx", midi_to_hz(64), "boop")
             self.timeline.at(now + 300, lambda: self.io.note_off("fx"))
             self.show_pattern(now + 900)
             return

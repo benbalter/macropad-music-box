@@ -24,7 +24,7 @@ def now():
     return time.monotonic_ns() // 1_000_000
 
 
-io = Macropad(volume=setting("VOLUME", 40), brightness=setting("BRIGHTNESS", 30))
+io = Macropad(volume=setting("VOLUME", 100), brightness=setting("BRIGHTNESS", 30))
 app = App(
     io,
     [Piano(io), Follow(io), Echo(io), Beat(io)],

@@ -5,6 +5,8 @@ CircuitPython's core modules directly rather than adafruit_macropad, whose
 sound calls block and which keeps the speaker pin for itself.
 """
 
+import time
+
 import audiomixer
 import audiopwmio
 import board
@@ -18,6 +20,9 @@ from music_box.instruments import drum_note, instrument_note
 from music_box.screen import Screen
 
 SAMPLE_RATE = 22050
+# Turn the amplifier off after this much silence: the PWM output hisses
+# through the speaker whenever the amp is on, even with nothing playing.
+AMP_OFF_AFTER = 2.0
 KEY_PINS = tuple(getattr(board, "KEY%d" % n) for n in range(1, 13))
 
 
@@ -34,7 +39,9 @@ class Macropad:
         self.dirty = False
 
         self.speaker_enable = digitalio.DigitalInOut(board.SPEAKER_ENABLE)
-        self.speaker_enable.switch_to_output(value=True)
+        self.speaker_enable.switch_to_output(value=False)
+        self.awake = True
+        self.last_sound = 0.0
         self.audio = audiopwmio.PWMAudioOut(board.SPEAKER)
         # The mixer gives a master volume and a buffer that keeps audio smooth
         # while the screen redraws.
@@ -72,6 +79,17 @@ class Macropad:
         if self.dirty:
             self.pixels.show()
             self.dirty = False
+        if (
+            self.speaker_enable.value
+            and not any(isinstance(v, int) for v in self.voices)  # no keys held
+            and time.monotonic() - self.last_sound > AMP_OFF_AFTER
+        ):
+            self.speaker_enable.value = False
+
+    def _sound(self):
+        self.last_sound = time.monotonic()
+        if self.awake:
+            self.speaker_enable.value = True
 
     # --- the io interface used by modes ---
 
@@ -79,6 +97,7 @@ class Macropad:
         self.note_off(voice)
         note = instrument_note(hz, instrument)
         self.voices[voice] = note
+        self._sound()
         self.synth.press(note)
 
     def note_off(self, voice):
@@ -96,6 +115,7 @@ class Macropad:
         self.note_off(("drum", name))
         note = drum_note(name)
         self.voices[("drum", name)] = note
+        self._sound()
         self.synth.press(note)
 
     def pixel(self, key, color):
@@ -114,8 +134,9 @@ class Macropad:
         self.fill((0, 0, 0))
         self.flush()
         self.screen.sleep()
+        self.awake = False
         self.speaker_enable.value = False
 
     def wake(self):
-        self.speaker_enable.value = True
+        self.awake = True
         self.screen.wake()

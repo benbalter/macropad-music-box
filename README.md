@@ -37,7 +37,7 @@ You need a Macropad RP2040 and a USB-C data cable. The Macropad has no battery, 
 
 Edit [`settings.toml`](circuitpy/settings.toml) on the `CIRCUITPY` drive. The board picks up changes on its own.
 
-- `VOLUME`: 0–100, default 40
+- `VOLUME`: 0–100, default 100 (the speaker is tiny)
 - `BRIGHTNESS`: key lights, 0–100, default 30
 - `SLEEP_MINUTES`: idle time before the toy turns off, default 10
 

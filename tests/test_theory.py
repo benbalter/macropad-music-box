@@ -24,7 +24,7 @@ def test_a440():
 
 def test_piano_goes_up_by_pentatonic_steps():
     assert len(PIANO_NOTES) == 12
-    assert PIANO_NOTES[:6] == [60, 62, 64, 67, 69, 72]
+    assert PIANO_NOTES[:6] == [67, 69, 71, 74, 76, 79]
     assert PIANO_NOTES == sorted(PIANO_NOTES)
 
 

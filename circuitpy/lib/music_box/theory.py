@@ -33,7 +33,9 @@ def scale(root, steps, count):
 
 
 # Pentatonic has no "wrong" notes: any keys pressed together sound nice.
-PIANO_NOTES = scale(note_to_midi("C4"), PENTATONIC, 12)
+# Starts at G4 (392 Hz) because the Macropad's tiny speaker can barely
+# play anything lower.
+PIANO_NOTES = scale(note_to_midi("G4"), PENTATONIC, 12)
 
 # The white keys from G to D cover every song in songs.py.
 SONG_NOTES = [note_to_midi(n) for n in "G4 A4 B4 C5 D5 E5 F5 G5 A5 B5 C6 D6".split()]

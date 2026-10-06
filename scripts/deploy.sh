@@ -17,9 +17,14 @@ uvx circup --path "$DRIVE" install neopixel < /dev/null
 
 # COPYFILE_DISABLE and the ._* exclude keep macOS from adding resource-fork
 # files to the FAT drive. --checksum avoids rewriting unchanged files, since
-# every write restarts the board.
-COPYFILE_DISABLE=1 rsync -r --checksum --exclude '._*' --exclude '__pycache__' \
+# every write restarts the board. --inplace skips rsync's temp-file-and-rename,
+# which macOS's FAT driver sometimes fails with "Bad address".
+COPYFILE_DISABLE=1 rsync -r --checksum --inplace --exclude '._*' --exclude '__pycache__' \
   "$ROOT/circuitpy/" "$DRIVE/"
+# Remove modules deleted or renamed here, so stale code can't be imported.
+# Scoped to our package: --delete on the whole drive would wipe circup's libs.
+COPYFILE_DISABLE=1 rsync -r --checksum --inplace --delete --exclude '._*' --exclude '__pycache__' \
+  "$ROOT/circuitpy/lib/music_box/" "$DRIVE/lib/music_box/"
 # macOS writes ._* files anyway on some versions; remove them.
 find "$DRIVE" -name "._*" -delete
 sync
