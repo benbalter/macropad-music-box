@@ -12,7 +12,7 @@ A CircuitPython music toy for the [Adafruit Macropad RP2040](https://learn.adafr
 ## Commands
 
 - `uvx pytest`, `uvx ruff check .`, `uvx ruff format .`: run all three before committing; CI runs the same.
-- [`scripts/deploy.sh`](scripts/deploy.sh): installs `neopixel` with circup and rsyncs `circuitpy/` to `/Volumes/CIRCUITPY`. The board restarts on every file write.
+- [`scripts/deploy.sh`](scripts/deploy.sh): installs `neopixel` with circup, remounts the drive with `noasync` (sudo), and copies only changed files, checking each one after writing. The board restarts on every file write. Don't bulk-`rsync` or `cp` to the drive yourself: macOS's FAT driver ([circuitpython#8449](https://github.com/adafruit/circuitpython/issues/8449)) failed those writes with `Bad address` and corrupted CIRCUITPY during development. To recover, run `storage.erase_filesystem()` from the REPL, which wipes the drive, so ask first.
 - To see on-device errors without an interactive terminal, open the first `/dev/cu.usbmodem*` with pyserial (`uv run --with pyserial python`), send `\x03` then `\x04` to soft-reload, and read the output. [`scripts/console.sh`](scripts/console.sh) is the interactive version.
 
 ## Gotchas

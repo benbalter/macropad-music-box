@@ -41,6 +41,13 @@ Edit [`settings.toml`](circuitpy/settings.toml) on the `CIRCUITPY` drive. The bo
 - `BRIGHTNESS`: key lights, 0–100, default 30
 - `SLEEP_MINUTES`: idle time before the toy turns off, default 10
 
+### Fixing a corrupted CIRCUITPY drive
+
+macOS's FAT driver can delay writes to small drives and corrupt CIRCUITPY ([circuitpython#8449](https://github.com/adafruit/circuitpython/issues/8449)). `scripts/deploy.sh` remounts the drive with synchronous writes and checks every file it writes, which avoids most of this. If the drive still stops mounting, or files come back empty:
+
+1. Open the serial console (`scripts/console.sh`), press Ctrl-C, then enter `import storage; storage.erase_filesystem()`. This wipes and reformats CIRCUITPY, and the board restarts.
+2. Run `scripts/deploy.sh` again.
+
 ## Development
 
 The layout of [`circuitpy/`](circuitpy/) matches the `CIRCUITPY` drive exactly. The game logic doesn't touch the hardware: modes ask an `io` object to play notes and light keys. On the board that object is [`hardware.py`](circuitpy/lib/music_box/hardware.py); in tests it's a fake that records what was asked for, so the games can be tested on a laptop.
