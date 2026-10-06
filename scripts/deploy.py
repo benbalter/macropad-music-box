@@ -94,14 +94,25 @@ def local_files():
     }
 
 
+# Runs on the board: create a directory and its parents. mpremote's
+# fs_exists can't parse CircuitPython's "No such file/directory" error.
+MAKEDIRS = """
+import os
+p = ''
+for part in {path!r}.strip('/').split('/'):
+    p += '/' + part
+    try:
+        os.stat(p)
+    except OSError:
+        os.mkdir(p)
+"""
+
+
 def ensure_dirs(board, path, made):
-    parts = path.split("/")[:-1]
-    for i in range(1, len(parts) + 1):
-        d = "/" + "/".join(parts[:i])
-        if d not in made:
-            if not board.fs_exists(d):
-                board.fs_mkdir(d)
-            made.add(d)
+    parent = "/" + path.rsplit("/", 1)[0] if "/" in path else None
+    if parent and parent not in made:
+        board.exec(MAKEDIRS.format(path=parent))
+        made.add(parent)
 
 
 def main():
