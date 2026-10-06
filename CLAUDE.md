@@ -24,4 +24,3 @@ A CircuitPython music toy for the [Adafruit Macropad RP2040](https://learn.adafr
 - Inject randomness (see `Echo(choice=...)`) so tests stay deterministic.
 - The toy can't use text: anything shown on the screen is a 16×16 icon in [`icons.py`](circuitpy/lib/music_box/icons.py), and a test checks that every icon a mode uses exists.
 - Keep the child's name and household details out of the repo; it's meant to be open source.
-- `backup/` (gitignored) holds the board's previous Zoom-mute RPC firmware files.
