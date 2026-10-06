@@ -9,6 +9,8 @@ from array import array
 
 import synthio
 
+from music_box.theory import loudness
+
 SAMPLES = 256
 
 
@@ -75,7 +77,9 @@ _DROP = array("h", [32767, 0])
 
 def instrument_note(hz, name):
     waveform, envelope, amplitude = INSTRUMENTS[name]
-    return synthio.Note(hz, waveform=waveform, envelope=envelope, amplitude=amplitude)
+    return synthio.Note(
+        hz, waveform=waveform, envelope=envelope, amplitude=amplitude * loudness(hz)
+    )
 
 
 def drum_note(name):

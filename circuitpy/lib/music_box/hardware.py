@@ -7,6 +7,7 @@ sound calls block and which keeps the speaker pin for itself.
 
 import time
 
+import audiofilters
 import audiomixer
 import audiopwmio
 import board
@@ -23,6 +24,8 @@ SAMPLE_RATE = 22050
 # Turn the amplifier off after this much silence: the PWM output hisses
 # through the speaker whenever the amp is on, even with nothing playing.
 AMP_OFF_AFTER = 2.0
+# Make-up gain after synthio, in decibels. See __init__.
+GAIN_DB = 6.0
 KEY_PINS = tuple(getattr(board, "KEY%d" % n) for n in range(1, 13))
 
 
@@ -49,8 +52,20 @@ class Macropad:
             voice_count=1, sample_rate=SAMPLE_RATE, channel_count=1, buffer_size=2048
         )
         self.synth = synthio.Synthesizer(sample_rate=SAMPLE_RATE)
+        # synthio plays a single note at about half of full scale, quieter than
+        # this speaker can go. A soft-clipping gain stage makes up the
+        # difference without harsh clipping on chords.
+        self.gain = audiofilters.Distortion(
+            pre_gain=GAIN_DB,
+            mode=audiofilters.DistortionMode.CLIP,
+            soft_clip=True,
+            sample_rate=SAMPLE_RATE,
+            channel_count=1,
+            buffer_size=1024,
+        )
+        self.gain.play(self.synth)
         self.audio.play(self.mixer)
-        self.mixer.voice[0].play(self.synth)
+        self.mixer.voice[0].play(self.gain)
         self.mixer.voice[0].level = volume / 100
         self.voices = {}
 

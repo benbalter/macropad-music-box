@@ -49,3 +49,13 @@ def test_every_icon_a_mode_uses_exists():
         assert mode.icon in ICONS
         for icon, _ in mode.options:
             assert icon in ICONS
+
+
+def test_loudness_turns_high_notes_down():
+    from music_box.theory import loudness
+
+    levels = [loudness(midi_to_hz(n)) for n in PIANO_NOTES]
+    assert levels[0] == pytest.approx(1.0)
+    assert levels == sorted(levels, reverse=True)
+    assert levels[-1] == pytest.approx(0.41, abs=0.01)
+    assert loudness(100) == 1.0  # never louder than full

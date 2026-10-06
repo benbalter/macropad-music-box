@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.2.0  # no floating v10 tag exists
       # Lint also bans modules CircuitPython doesn't have (see pyproject.toml),
       # since the tests run on CPython and wouldn't catch those.
       - run: uvx ruff check .

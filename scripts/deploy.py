@@ -162,7 +162,11 @@ def main():
             changed += 1
 
     print(f"{changed} file(s) changed. Restarting the board.")
-    board.exec_raw_no_follow("import supervisor; supervisor.reload()")
+    # Leave the raw REPL and soft-reload (Ctrl-D) so code.py starts. Calling
+    # supervisor.reload() from inside the raw REPL leaves the board at the
+    # REPL prompt instead.
+    board.exit_raw_repl()
+    board.serial.write(b"\x04")
     board.close()
 
 
